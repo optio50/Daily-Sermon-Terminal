@@ -1,0 +1,168 @@
+#!/bin/bash
+
+rm_log() {
+if  [ -f "source.txt" ]
+then
+rm source.txt
+fi
+}
+
+Position() {
+tput cuu 21
+tput el1
+tput ed
+tput cnorm
+printf "%b\n"
+}
+
+Comments() {
+Position
+tput setaf 2
+printf "%b\n" "---------------------------------------------------------------------------------------------"
+printf "%b\n" "P for Pause & Play     Left, Right, Up, Down Arrows for Fwd & Rev"
+printf "%b\n"
+tput setaf 4
+printf "%b\n" "While playing press ctrl-Z then type bg to backgroud the process and continue
+listening while still working in the terminal. To get back type fg to foreground the process\n"
+tput setaf 2
+printf "%b\n" "Sermons provided by oneplace.com find more ministries at https://www.oneplace.com/
+---------------------------------------------------------------------------------------------\n"
+tput sgr0
+}
+
+Pastor() {
+#tput bold
+#tput setaf 0
+command cat <<EOF
+
+Who would you like to listen to for todays sermon?
+==========================================================
+
+ 1. Adrian Rogers	( Love Worth Finding )
+
+ 2. Greg Laurie		( A New Beginning )
+
+ 3. Vernon Mcgee	( Thru The Bible With J Vernon Mcgee )
+
+ 4. David Jeremiah	( Turning Point )
+
+ 5. Alistair Begg	( Truth For Life )
+
+ 6. John MacArthur	( Grace To You )
+
+ 7. Charles Stanley	( In Touch )
+
+ 8. Chuck Swindoll	( Insight For Living )
+
+EOF
+
+if [[ (( ${1} -ge 1 && ${1} -le 8 )) ]]; then # if we passed an argument (1-8) to the script, play that ministry number
+choice=${1}
+else
+read -r -n 1 choice # Pause for user input
+fi
+
+case ${choice} in
+
+ 1) ministries='love-worth-finding'
+ ;;
+ 2) ministries='a-new-beginning'
+ ;;
+ 3) ministries='thru-the-bible-with-j-vernon-mcgee'
+ ;;
+ 4) Comments
+	curl -o source.txt -s -L http://www.davidjeremiah.org/site/radio_player.aspx # David Jeremiah audio is located off site
+	title=$(grep -oP '(?<=<h2>).*(?=</h2>)' source.txt)
+	tput setaf 1
+	printf "%b\n" "${title}"
+	tput sgr0
+	url=$(grep -Eo  'http.*_US_128k.*mp3' source.txt)
+	rm_log
+	mpv "${url}"
+	exit
+ ;;
+ 5) ministries='truth-for-life'
+ ;;
+ 6) ministries='grace-to-you'
+ ;;
+ 7) ministries='in-touch'
+ ;;
+ 8) ministries='insight-for-living'
+ ;;
+ *) Position
+	Pastor
+ ;;
+esac
+
+}
+
+
+# If mpv and or curl are not installed error out and exit with warning
+if ! [ -x "$(command -v mpv)" ] && [ -x "$(command -v curl)" ]; then
+tput setaf 1
+printf "%b\n" 'Error: Both mpv & curl are required.' >&2
+tput sgr0
+exit
+fi
+
+if [ ${#} -eq 1 ]; then # if we passed an argument (1-8) to the script, play that ministry number
+rm_log
+Pastor "$1"
+Comments
+else	# If no argument passed to script present user with menu option
+rm_log
+Pastor
+Comments
+fi
+
+
+# Download the ministry page one time and reuse it for sermon name, title and description
+curl -o source.txt -s -L https://www.oneplace.com/ministries/${ministries}/
+
+# Remove some HTML entities from the source file and replace them with the real text value
+sed -i 's/&nbsp;/ /g; s/&amp;/\&/g; s/&lt;/\</g; s/&gt;/\>/g; s/&quot;/\"/g; s/#&#39;/\'"'"'/g; s/&ldquo;/\"/g; s/&rdquo;/\"/g; s/&rsquo;/\’/g;  s/&mdash;/\-/g; s/&#160;/\-/g;' source.txt 
+
+#####################################################
+# Backup mp3 audio url
+#url=$(curl -s https://www.oneplace.com/ministries/${ministries}/ | grep "<meta property=\"og:url\" content=\"https://www.oneplace.com/ministries/${ministries}/listen/" \
+#| grep -Eio "https://www.oneplace.com/ministries/${ministries}/listen/.*\.html" | sed 's,listen/,subscribe/podcast/,g' | sed 's/html/mp3/g')
+
+#####################################################
+# Primary mp3 audio url
+# If this url variable fails use the one above
+url=$(grep -Eio 'https.*\.mp3' source.txt | head -n1)
+
+#####################################################
+
+description=$(grep -A 1 '<div class="description">' source.txt | grep -oP '(?<=<p>).*(?=</p>)')
+sermon_title=$(grep '<meta property="og:title"' source.txt | grep -oP '(?<=content=").*(?=\|)')
+ministry_title=$(grep -oP '(?<=<title>).*(?=</title>)' source.txt)
+#title=$(curl -s -L https://www.oneplace.com/ministries/${ministries}/ | grep '<meta property="og:title"' | grep -oP '(?<=content=").*(?=\|)')
+tput setaf 6
+printf "%b\n" "${ministry_title}"
+tput setaf 1
+printf "%b\n" "${sermon_title}"
+tput setaf 3
+printf "%b\n" "${description}"
+tput sgr0
+rm_log
+
+####################################
+# Play the selected url with mpv player
+#printf "%b\n" "${url}"
+mpv "${url}"
+####################################
+
+if [ ${#} -eq 1 ]; then 
+exit
+else
+printf "%b\n" # If user did not pass an argument then inform them of the option at exit
+tput setaf 4
+printf "%b\n" "This script also takes an argument if desired. 
+You can type the number of your desired ministry with the script name
+
+Example:
+"
+basename "${0} 5"
+tput sgr0
+fi
