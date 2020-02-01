@@ -4,11 +4,11 @@ The sermons are different each day as played on the radio.
 
 Curl and mpv player are required
 
- 1. Adrian Rogers	( Love Worth Finding )
+ 1. Adrian Rogers  	( Love Worth Finding )
 
- 2. Greg Laurie		( A New Beginning )
+ 2. Greg Laurie     ( A New Beginning )
 
- 3. Vernon Mcgee	( Thru The Bible With J Vernon Mcgee )
+ 3. Vernon Mcgee    ( Thru The Bible With J Vernon Mcgee )
 
  4. David Jeremiah	( Turning Point )
 
