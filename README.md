@@ -1,6 +1,8 @@
 # Daily-Sermon-Terminal
 Christian Sermons in your Terminal with a selection from 8 different ministries
 
+Curl and mpv player are required
+
  1. Adrian Rogers	( Love Worth Finding )
 
  2. Greg Laurie		( A New Beginning )
