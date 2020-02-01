@@ -1,5 +1,6 @@
 # Daily-Sermon-Terminal
 Christian Sermons in your Terminal with a selection from 8 different ministries
+The sermons are different each day as played on the radio.
 
 Curl and mpv player are required
 
